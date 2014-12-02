@@ -4,6 +4,8 @@
 *.asm
 #忽略所有的.img文件
 *.img
+#忽略所有临时文件
+*~
 #忽略下面两个可执行文件
 bootblock
 sign
