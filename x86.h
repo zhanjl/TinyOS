@@ -55,4 +55,11 @@ stosl(void *addr, int data, int cnt)
                "0" (addr), "1" (cnt), "a" (data) :
                "memory", "cc");
 }
+
+static inline void
+lcr3(uint val) 
+{
+  asm volatile("movl %0,%%cr3" : : "r" (val));
+}
+
 #endif
