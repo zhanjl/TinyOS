@@ -2,6 +2,7 @@
 #include "mmu.h"
 #include "memlayout.h"
 #include "vm.h"
+#include "monitor.h"
 extern char end[];
 //定义供内核人口(entry.s)使用的页表
 __attribute__((__aligned__(PGSIZE)))
@@ -14,10 +15,15 @@ pde_t   entrypgdir[NPDENTRIES] = {
 int main()
 {
     //供内核使用的堆区只有end - 4MB区间 
-    kinit(end, 1024 * 1024 * 4);
+    kinit(end, P2V(1024 * 1024 * 4));
     //为内核分配一张新的页表，并切换到该页表
     kvmalloc(); 
-
+    //重新设置GDT表，包括用户代码段和用户数据段
+    seginit();
+    //打印信息，提示成功
+    //printf("%s", "seginit() sucess\n");
+    monitor_clear();               //清除屏幕
+    printf("success %s\n", "siginit()");
     return 0;
 }
 

@@ -1,15 +1,66 @@
 //这个文件包含和所有和内存管理单元有关的定义
+#include "types.h"
 #ifndef MMU_H
 #define MMU_H
 
-#define CR0_PE          0x00000001  //保护模式位
-
+#define CR0_PE          0x00000001      // Protection Enable
+#define CR0_MP          0x00000002      // Monitor coProcessor
+#define CR0_EM          0x00000004      // Emulation
+#define CR0_TS          0x00000008      // Task Switched
+#define CR0_ET          0x00000010      // Extension Type
+#define CR0_NE          0x00000020      // Numeric Errror
+#define CR0_WP          0x00010000      // Write Protect
+#define CR0_AM          0x00040000      // Alignment Mask
+#define CR0_NW          0x20000000      // Not Writethrough
+#define CR0_CD          0x40000000      // Cache Disable
+#define CR0_PG          0x80000000      // Paging
 #define CR4_PSE         0x00000010
+
+#define NSEGS           5   //GDT表项的数目
 //段选择子
 #define SEG_KCODE       1   //内核代码段
 #define SEG_KDATA       2   //内核数据段
+#define SEG_UCODE       3   //用户代码段
+#define SEG_UDATA       4   //用户数据段
+
+#ifndef __ASSEMBLER__
+//GDT表项定义
+struct segdesc {
+  uint lim_15_0 : 16;  // Low bits of segment limit
+  uint base_15_0 : 16; // Low bits of segment base address
+  uint base_23_16 : 8; // Middle bits of segment base address
+  uint type : 4;       // Segment type (see STS_ constants)
+  uint s : 1;          // 0 = system, 1 = application
+  uint dpl : 2;        // Descriptor Privilege Level
+  uint p : 1;          // Present
+  uint lim_19_16 : 4;  // High bits of segment limit
+  uint avl : 1;        // Unused (available for software use)
+  uint rsv1 : 1;       // Reserved
+  uint db : 1;         // 0 = 16-bit segment, 1 = 32-bit segment
+  uint g : 1;          // Granularity: limit scaled by 4K when set
+  uint base_31_24 : 8; // High bits of segment base address
+};
 
 
+#define SEG(type, base, lim, dpl) (struct segdesc)    \
+{ ((lim) >> 12) & 0xffff, (uint)(base) & 0xffff,      \
+  ((uint)(base) >> 16) & 0xff, type, 1, dpl, 1,       \
+  (uint)(lim) >> 28, 0, 0, 1, 1, (uint)(base) >> 24 }
+#define SEG16(type, base, lim, dpl) (struct segdesc)  \
+{ (lim) & 0xffff, (uint)(base) & 0xffff,              \
+  ((uint)(base) >> 16) & 0xff, type, 1, dpl, 1,       \
+  (uint)(lim) >> 16, 0, 0, 1, 0, (uint)(base) >> 24 }
+#endif
+
+#define DPL_USER    0x3     // User DPL
+
+// Application segment type bits
+#define STA_X       0x8     // Executable segment
+#define STA_E       0x4     // Expand down (non-executable segments)
+#define STA_C       0x4     // Conforming code segment (executable only)
+#define STA_W       0x2     // Writeable (non-executable segments)
+#define STA_R       0x2     // Readable (executable segments)
+#define STA_A       0x1     // Accessed
 // page directory index
 #define PDX(va)         (((uint)(va) >> PDXSHIFT) & 0x3FF)
 

@@ -1,35 +1,42 @@
-#include "types.h"
+// Format of an ELF executable file
 
-#ifndef ELF_H
-#define ELF_H
+#define ELF_MAGIC 0x464C457FU  // "\x7FELF" in little endian
 
-//ELF头部结构
-typedef struct {
-    uchar       e_ident[16];    //目标文件标识信息
-    ushort      e_type;         
-    ushort      e_machine;
-    uint        e_version;
-    uint        e_entry;
-    uint        e_phoff;
-    uint        e_shoff;
-    uint        e_flags;
-    ushort      e_ehsize;
-    ushort      e_phentsize;
-    ushort      e_phnum;
-    ushort      e_shentisze;
-    ushort      e_shnum;
-    ushort      e_shstrndx;
-} elf_header;
+// File header
+struct elfhdr {
+  uint magic;  // must equal ELF_MAGIC
+  uchar elf[12];
+  ushort type;
+  ushort machine;
+  uint version;
+  uint entry;
+  uint phoff;
+  uint shoff;
+  uint flags;
+  ushort ehsize;
+  ushort phentsize;
+  ushort phnum;
+  ushort shentsize;
+  ushort shnum;
+  ushort shstrndx;
+};
 
-//ELF程序头部
-typedef struct {
-    uint    p_type;
-    uint    p_offset;
-    uint    p_vaddr;
-    uint    p_paddr;
-    uint    p_filesz;
-    uint    p_memsz;
-    uint    p_flags;
-    uint    p_align;
-} elf_phdr;
-#endif
+// Program section header
+struct proghdr {
+  uint type;
+  uint off;
+  uint vaddr;
+  uint paddr;
+  uint filesz;
+  uint memsz;
+  uint flags;
+  uint align;
+};
+
+// Values for Proghdr type
+#define ELF_PROG_LOAD           1
+
+// Flag bits for Proghdr flags
+#define ELF_PROG_FLAG_EXEC      1
+#define ELF_PROG_FLAG_WRITE     2
+#define ELF_PROG_FLAG_READ      4

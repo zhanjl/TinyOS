@@ -3,6 +3,7 @@
 #include "param.h"
 #include "mmu.h"
 #include "memlayout.h"
+
 .globl _start
 _start = V2P_WO(entry)
 

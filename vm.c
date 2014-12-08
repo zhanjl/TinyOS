@@ -1,3 +1,4 @@
+#include "types.h"
 #include "vm.h"
 #include "param.h"
 #include "mmu.h"
@@ -9,6 +10,19 @@
 extern char data[];     //内核数据段起始地址
 pde_t   *kpgdir;        //内核页目录表起始地址
 
+struct segdesc gdt[NSEGS];
+
+//初始化GDT表
+void 
+seginit(void)
+{
+    gdt[SEG_KCODE] = SEG(STA_X | STA_R, 0, 0xffffffff, 0);
+    gdt[SEG_KDATA] = SEG(STA_W, 0, 0xffffffff, 0);
+    gdt[SEG_UCODE] = SEG(STA_X | STA_R, 0, 0xffffffff, DPL_USER);
+    gdt[SEG_KDATA] = SEG(STA_W, 0, 0xffffffff, DPL_USER);
+
+    lgdt(gdt, sizeof(gdt));
+}
 //返回某个虚拟地址对应的页表项
 //页表项如果不存在，分配一张页表(alloc == 1)或者直接返回0(alloc == 0)。
 static pte_t *
@@ -17,17 +31,18 @@ walkpgdir(pde_t *pgdir, const void *va, int alloc)
     pde_t *pde;
     pte_t *pte;
 
-    pde = pgdir[PDX(va)];
-    if (pde & PTE_P) {
-        pte = (pte_t*)P2V(PTE_ADDR(pde));
+    pde = &pgdir[PDX(va)];
+    if ((*pde) & PTE_P) {
+        pte = (pte_t*)P2V(PTE_ADDR(*pde));
     } else {
-        if (!alloc || (pte = (pte_t*)kalloc()) == 0)
+        if (!alloc || (pte = kalloc()) == 0)
             return 0;
 
         memset(pte, 0, PGSIZE);
-        *pde = pte | PTE_P | PTE_W;
+        *pde = V2P(pte) | PTE_P | PTE_W;
     }
     return &pte[PTX(va)];
+
 }
 
 //把从虚拟地址va开始的size大小地址段映射到物理起始地址pa处
@@ -35,7 +50,7 @@ static int
 mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
 {
     char *start, *end;
-    start = (char*)PGROUNDDOWN(va);
+    start = (char*)PGROUNDDOWN((uint)va);
     end = (char*)PGROUNDDOWN((uint)va + size - 1);
     pa = PGROUNDDOWN(pa);
     pte_t *pte;
@@ -45,15 +60,14 @@ mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
         if (pte == 0)
             return -1;
         //该页表项已经映射了物理内存
-        if (*pte | PTE_P)
+        if (*pte & PTE_P)
             return -1;
 
-        *pte = pa | PTE_P | perm;
+       *pte = pa | PTE_P | perm;
         
-        start += size;
-        pa += size;
+        start += PGSIZE;
+        pa += PGSIZE;
     } 
-
     return 0;
 }
 
@@ -75,7 +89,7 @@ pde_t*
 setupkvm(void)
 {
     pde_t *pgdir;
-    pgdir = kalloc();
+    pgdir = (uint)kalloc();
     if (pgdir == 0)
         return 0;
     memset(pgdir, 0, PGSIZE);
@@ -92,7 +106,7 @@ setupkvm(void)
 
 static void switchkvm()
 {
-    lcr3(v2p(kpgdir));
+    lcr3(V2P(kpgdir));
 }
 
 //为内核分配页表，并切换到该页表

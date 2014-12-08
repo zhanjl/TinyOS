@@ -14,13 +14,19 @@ int main(int argc, char *argv[])
     fp = fopen(argv[1], "r+");
    
     fstat(fileno(fp), &buf);
-    if (buf.st_size > 510)
+    int size = buf.st_size;
+    if (size > 510)
     {
         printf("%s is too large\n", argv[1]);
         return -1;
     } 
-
-    fseek(fp, 510, SEEK_SET);
+    fseek(fp, 0, SEEK_END);
+    temp = 'a';
+    while (size < 510)
+    {
+        fwrite(&temp, 1, 1, fp);
+        size++;
+    }
     temp = 0x55;
     fwrite(&temp, 1, 1, fp);
     temp = 0xAA;
