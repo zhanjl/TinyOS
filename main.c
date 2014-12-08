@@ -20,8 +20,6 @@ int main()
     kvmalloc(); 
     //重新设置GDT表，包括用户代码段和用户数据段
     seginit();
-    //打印信息，提示成功
-    //printf("%s", "seginit() sucess\n");
     monitor_clear();               //清除屏幕
     printf("success %s\n", "siginit()");
     return 0;
