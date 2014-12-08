@@ -9,6 +9,7 @@ inb(ushort port)
     return data;
 }
 
+static inline void
 insl(int port, void *addr, int cnt)
 {
   asm volatile("cld; rep insl" :
@@ -54,5 +55,24 @@ stosl(void *addr, int data, int cnt)
                "=D" (addr), "=c" (cnt) :
                "0" (addr), "1" (cnt), "a" (data) :
                "memory", "cc");
+}
+
+static inline void
+lcr3(uint val) 
+{
+  asm volatile("movl %0,%%cr3" : : "r" (val));
+}
+
+struct segdesc;
+static inline void
+lgdt(struct segdesc *p, int size)
+{
+  volatile ushort pd[3];
+
+  pd[0] = size-1;
+  pd[1] = (uint)p;
+  pd[2] = (uint)p >> 16;
+
+  asm volatile("lgdt (%0)" : : "r" (pd));
 }
 #endif
