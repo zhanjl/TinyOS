@@ -2,6 +2,8 @@ OBJS = kalloc.o \
 	   mem.o \
 	   vm.o \
 	   monitor.o \
+	   picirq.o \
+	   file.o		\
 	   main.o
 CC = gcc
 AS = gas
@@ -32,7 +34,7 @@ kernel: $(OBJS) entry.o kernel.ld
 	$(LD) $(LDFLAGS) -T kernel.ld -o kernel entry.o $(OBJS)
 	$(OBJDUMP) -S kernel > kernel.asm
 clean:
-	rm *.asm *.o bootblock sign kernel *.d *.img
+	rm *.asm *.o bootblock sign kernel *.d xv6.img
 
 bochs : xv6.img
 	sudo bochs -f .bochsrc

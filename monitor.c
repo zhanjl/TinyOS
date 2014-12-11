@@ -1,6 +1,10 @@
 #include "x86.h"
 #include "monitor.h"
 #include "memlayout.h"
+#include "picirq.h"
+#include "traps.h"
+#include "types.h"
+#include "file.h"
 short *video_base = 0xB8000 + KERNBASE;        //IO缓存的起始地址(虚拟地址))
 unsigned short cursor_x, cursor_y;    //默认初始化为0
 
@@ -189,4 +193,77 @@ void printf(const char* fmt, ...)
     }
 
     return;
+}
+
+
+#define INPUT_BUF   128
+
+struct {
+    char buf[INPUT_BUF];
+    uint r; //读字符的索引
+    //uint w;
+    uint e; //编辑索引
+} input;
+
+#define C(x)    ((x) - '@')
+
+//键盘中断的处理函数
+void consoleintr(int (*getc)(void))
+{
+    int c;
+    while ((c = getc()) >= 0)
+    {
+        switch(c) {    
+        
+            default:
+            //在此处还要加上特殊字符的处理
+            if (c != 0 && input.e-input.r < INPUT_BUF)
+            {
+                c = (c == '\r') ? '\n' : c;
+                input.buf[input.e++%INPUT_BUF] = c;
+                monitor_putc(c);
+
+            }
+            break; 
+        }
+    }
+    return;
+}
+
+//从键盘缓冲区中读取字符
+int consoleread(struct inode *ip, char *dst, int n)
+{
+    int c;
+    int target;
+    target = n;
+    while (n > 0)
+    {
+        if (input.r == input.e)
+            continue;
+        c = input.buf[input.r++%INPUT_BUF];
+        
+        *dst++ = c;
+        --n;
+        if (c == '\n')
+            break;
+    }
+    return target - n;
+}
+
+//把buf缓冲区的内容显示到屏幕上
+int consolewrite(struct inode *ip, char *buf, int n)
+{
+    int i;
+    for (i = 0; i < n; i++)
+        monitor_putc(buf[i]);
+    return n;
+}
+
+extern struct devsw devsw[];
+void consoleinit(void)
+{
+    //设置显示设备的读写函数
+    devsw[CONSOLE].read = consoleread;
+    devsw[CONSOLE].write = consolewrite;
+    picenable(IRQ_KBD); //打开键盘中断
 }
