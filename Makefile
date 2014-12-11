@@ -4,6 +4,7 @@ OBJS = kalloc.o \
 	   monitor.o \
 	   picirq.o \
 	   file.o		\
+	   trap.o	\
 	   main.o
 CC = gcc
 AS = gas
