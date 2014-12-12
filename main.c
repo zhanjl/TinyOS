@@ -3,6 +3,8 @@
 #include "memlayout.h"
 #include "vm.h"
 #include "monitor.h"
+#include "picirq.h"
+#include "traps.h"
 extern char end[];
 //定义供内核人口(entry.s)使用的页表
 __attribute__((__aligned__(PGSIZE)))
@@ -22,6 +24,10 @@ int main()
     seginit();
     monitor_clear();               //清除屏幕
     printf("success %s\n", "siginit()");
+
+    picinit();  //初始化IRQ芯片
+    consoleinit();  //初始化显示设备
+    tvinit();       //设置IDT表
     return 0;
 }
 

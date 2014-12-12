@@ -9,4 +9,6 @@ void monitor_dec(int val); //以10进制方式显示一个数字
 void printf(const char* fmt, ...);
 #define PANIC(msg) panic(msg, __FILE__, __LINE__)
 void panic(const char*, const char*, unsigned int);
+
+void consoleinit(void);
 #endif
