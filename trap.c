@@ -19,7 +19,7 @@ void trap(struct trapframe *tf)
     //根据intrnum的值分别进行处理
     //switch(intrnum) {
     //    case T_SYSCALL:
-            
+           
     //}
 }
 

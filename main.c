@@ -14,6 +14,7 @@ pde_t   entrypgdir[NPDENTRIES] = {
     //KERNBASE - KERNBASE + 4MB映射到 0 - 4MB
     [KERNBASE>>PDXSHIFT] = (0) | PTE_P | PTE_W | PTE_PS,
 };
+
 int main()
 {
     //供内核使用的堆区只有end - 4MB区间 
@@ -27,7 +28,7 @@ int main()
 
     picinit();  //初始化IRQ芯片
     consoleinit();  //初始化显示设备
-    tvinit();       //设置IDT表
+    tvinit();       //设置IDT表 具体的中断处理程序还没加上
     return 0;
 }
 
