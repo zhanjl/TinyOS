@@ -5,6 +5,10 @@ OBJS = kalloc.o \
 	   picirq.o \
 	   file.o		\
 	   trap.o	\
+	   trapasm.o \
+	   vectors.o	\
+	   buf.o	\
+	   ide.o	\
 	   main.o
 CC = gcc
 AS = gas

@@ -1,6 +1,8 @@
 #include "buf.h"
 #include "monitor.h"
 #include "mem.h"
+#include "ide.h"
+#include "param.h"
 struct {
     struct buf buf[NBUF];   //缓存块数组
     struct buf head;        //链表头部
@@ -22,7 +24,7 @@ void binit(void)
     }
 }
 
-void brelse(struct buf* cur)
+static void brelse(struct buf* cur)
 {
     cur->prev->next = cur->next;
     cur->next->prev = cur->prev;
@@ -33,7 +35,7 @@ void brelse(struct buf* cur)
     bcache.head.next = cur;
 }
 
-struct buf* bget(uint dev, uint sector)
+static struct buf* bget(uint dev, uint sector)
 {
     int i;
     for (i = 0; i < NBUF; i++)

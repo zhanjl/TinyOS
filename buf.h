@@ -13,8 +13,14 @@ struct buf {
 
     struct buf *prev;
     struct buf *next;
+    struct buf *qnext;
     uchar   data[512];
 };
 
 void binit(void);   //初始化磁盘缓冲区
-struct buf 
+//从磁盘读数据
+void bread(uint dev, uint sector, uint offset, uchar *buf, uint count);
+//向磁盘写数据
+void bwrite(uint dev, uint sector, uint offset, uchar *buf, uint count);
+
+#endif 

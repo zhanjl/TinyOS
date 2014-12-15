@@ -5,6 +5,8 @@
 #include "monitor.h"
 #include "picirq.h"
 #include "traps.h"
+#include "ide.h"
+#include "buf.h"
 extern char end[];
 //定义供内核人口(entry.s)使用的页表
 __attribute__((__aligned__(PGSIZE)))
@@ -29,6 +31,7 @@ int main()
     picinit();  //初始化IRQ芯片
     consoleinit();  //初始化显示设备
     tvinit();       //设置IDT表 具体的中断处理程序还没加上
+    ideinit();      //初始化磁盘缓冲区
+    binit();        //初始化磁盘IO
     return 0;
 }
-
