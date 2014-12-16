@@ -9,7 +9,7 @@
 #define IRQ_TIMER   0     //时钟对应的IRQ号
 
 #define IRQ_KBD     1       //键盘对应的IRQ号
-
+#define IRQ_IDE     14      //磁盘对应的IRQ号
 
 
 struct trapframe {
@@ -65,6 +65,11 @@ struct gatedesc {
 // - dpl: Descriptor Privilege Level -
 //        the privilege level required for software to invoke
 //        this interrupt/trap gate explicitly using an int instruction.
+
+#define STS_IG32        0xE
+#define STS_TG32        0xF
+
+
 #define SETGATE(gate, istrap, sel, off, d)                \
 {                                                         \
   (gate).off_15_0 = (uint)(off) & 0xffff;                \

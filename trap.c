@@ -1,6 +1,7 @@
 #include "traps.h"
 #include "mmu.h"
 #include "x86.h"
+#include "ide.h"
 struct gatedesc idt[256];
 extern uint vectors[];
 //设置IDT表
@@ -17,10 +18,11 @@ void trap(struct trapframe *tf)
     int intrnum;    //中断号
     intrnum = tf->trapno;
     //根据intrnum的值分别进行处理
-    //switch(intrnum) {
-    //    case T_SYSCALL:
-            
-    //}
+    switch(intrnum) {
+        case T_IRQ0 + IRQ_IDE:
+            ideintr();
+            break;
+    }
 }
 
 //加载idt表

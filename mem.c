@@ -10,3 +10,13 @@ void *memset(void *src, char c, uint size)
 
     return src;
 }
+void *memcpy(void *dst, void *src, uint size)
+{
+    uchar *d, *s;
+    uint i;
+    d = dst;
+    s = src;
+    for (i = 0; i < size; i++)
+        d[i] = s[i];
+    return dst;
+}
