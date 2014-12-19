@@ -99,7 +99,7 @@ void bwrite(uint dev, uint sector, uint offset, uchar *buf, uint count)
 {
     struct buf *b;
     b = bget(dev, sector);
-    
+     
     b->flags |= BUF_BUSY;
     b->flags |= BUF_DIRTY;
 
