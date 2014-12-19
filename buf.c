@@ -24,8 +24,10 @@ void binit(void)
     }
 }
 
-static void brelse(struct buf* cur)
+void brelse(struct buf* cur)
 {
+    if (b->flags & BUF_BUSY)
+        PANIC("brelse");
     cur->prev->next = cur->next;
     cur->next->prev = cur->prev;
 
@@ -76,7 +78,7 @@ static struct buf* bget(uint dev, uint sector)
 }
 
 //从磁盘读数据
-void bread(uint dev, uint sector, uint offset, uchar *buf, uint count)
+struct buf* bread(uint dev, uint sector)
 {
     struct buf *b;
     b = bget(dev, sector);
@@ -88,28 +90,16 @@ void bread(uint dev, uint sector, uint offset, uchar *buf, uint count)
         b->flags |= BUF_VALID;
     }
 
-    //真正的读操作
-    memcpy(buf, b->data + offset, count);
     b->flags &= ~BUF_BUSY;
+    return b;
 }
 
 //向磁盘写数据，在写之前一定要先读
 //防止一个缓冲块中有多个磁盘块的数据
-void bwrite(uint dev, uint sector, uint offset, uchar *buf, uint count)
+void bwrite(struct buf *b)
 {
-    struct buf *b;
-    b = bget(dev, sector);
-     
     b->flags |= BUF_BUSY;
     b->flags |= BUF_DIRTY;
-
-    if (!(b->flags & BUF_VALID))
-    {
-        iderw(b);   //读磁盘块
-        b->flags |= BUF_VALID;
-    }
-
-    //执行真正的写操作
-    memcpy(b->data + offset, buf, count);
+    iderw(b);    
     b->flags &= ~BUF_BUSY;
 }

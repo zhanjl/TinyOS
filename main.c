@@ -31,7 +31,7 @@ int main()
     picinit();  //初始化IRQ芯片
     consoleinit();  //初始化显示设备
     tvinit();       //设置IDT表 具体的中断处理程序还没加上
-    ideinit();      //初始化磁盘缓冲区
-    binit();        //初始化磁盘IO
+    ideinit();      //初始化磁盘IO
+    binit();        //初始化磁盘缓冲区
     return 0;
 }

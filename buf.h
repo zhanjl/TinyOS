@@ -19,8 +19,9 @@ struct buf {
 
 void binit(void);   //初始化磁盘缓冲区
 //从磁盘读数据
-void bread(uint dev, uint sector, uint offset, uchar *buf, uint count);
+struct buf* bread(uint dev, uint sector);
 //向磁盘写数据
-void bwrite(uint dev, uint sector, uint offset, uchar *buf, uint count);
+void bwrite(struct buf* f);
+void brelse(struct buf* cur);
 
 #endif 
