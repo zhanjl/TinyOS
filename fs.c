@@ -356,4 +356,153 @@ int writei(struct inode *ip, char *src, uint off, uint n)
     return n;
 }
 
+/*
+ *和目录有关的函数
+ */
 
+int namecmp(const char *s, const char *t)
+{
+    return strncmp(s, t, DIRSIZ);
+}
+
+//在一个目录文件中查找指定文件的i节点号
+struct inode *dirlookup(struct inode *dp, char *name, uint *poff)
+{
+    if (dp->type != T_DIR)
+        PANIC("dirlookup not dir");
+
+    uint off, inum;
+    struct dirent de;
+
+    for (off = 0; off < dp->size; off += sizeof(de))
+    {
+        if (readi(dp, (char*)&de, off, sizeof(de)) != sizeof(de))
+            PANIC("readi error");
+        if (de.inum == 0)
+            continue;
+        if (namecmp(name, de.name) == 0)
+        {
+            if (poff)
+                *poff = off;
+            inum = de.inum;
+            return iget(dp->dev, inum);
+        }
+    }
+
+    return 0;
+}
+
+//在一个目录中增加一个文件
+int dirlink(struct inode *dp, char *name, uint inum)
+{
+    int     off;
+    struct dirent de;
+    struct inode *ip;
+
+    //查找该文件是否已在目录文件中
+    if ((ip = dirlookup(dp, name, 0)) != 0)
+    {
+        iput(ip);
+        return -1;
+    }
+
+    //找到一个空闲项
+    for (off = 0; off < dp->size; off += sizeof(de))
+    {
+        if (readi(dp, (char*)&de, off, sizeof(de)) != sizeof(de))
+            PANIC("dirlink read");
+        if (de.inum == 0)
+            break;
+    }
+    
+    strncpy(de.name, name, DIRSIZ);
+    de.inum = inum;
+    if (writei(dp, (char*)&de, off, sizeof(de)) != sizeof(de))
+        PANIC("writei error");
+
+    return 0;
+}
+
+static char *skipelem(char *path, char *name)
+{
+    char *s;
+    int len;
+
+    while (*path == '/')
+        path++;
+    if (*path == 0)
+        return 0;
+    
+    s = path;
+    while (*path != '/' && *path != 0)
+        path++;
+
+    len = path - s;
+    
+    if (len >= DIRSIZ) {
+        memcpy(name, s, DIRSIZ - 1);
+        name[DIRSIZ-1] = '\0';
+    } else {
+        memcpy(name, s, len);
+        name[len] = '\0';
+    }
+    while (path == '/')
+        path++;
+    return path;
+}
+
+//返回一个给定文件的i节点
+static struct inode*
+namex(char *path, int nameiparent, char *name)
+{
+    struct inode *ip, *next;
+    
+    if (*path == '/')
+        ip = iget(ROOTDEV, ROOTINO);
+    else 
+        ip = idup(proc->cwd);   //当前进程目录    
+
+    while ((path = skipelem(path, name)) != 0)
+    {
+        ilock(ip);
+
+        if (ip->type != T_DIR)
+        {
+            iunlockput(ip);
+            return 0;
+        }
+
+        if (nameiparent && *path == '\0')
+        {
+            iunlock(ip);
+            return ip;
+        }
+
+        if ((next = dirlookup(ip, name, 0)) == 0)
+        {
+            iunlockput(ip);
+            return 0;
+        }
+        iunlockput(ip);
+        ip = next;
+    }
+    if (nameiparent)
+    {
+        iput(ip);
+        return 0;
+    }
+
+    return ip;
+}
+
+
+struct inode* namei(char *path)
+{
+    char name[DIRSIZ];
+    return namex(path, 0, name);
+}
+
+struct inode* nameiparent(char *path, char *name)
+{
+    return namex(path, 1, name);
+}

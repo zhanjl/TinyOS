@@ -7,4 +7,6 @@
 #define NFILE       100     //每个进程运行打开的最大文件数目
 #define NINODE      50      //整个系统允许打开的最多不同文件数
 #define NBUF        30
+
+#define ROOTDEV     1   //文件系统的设备号
 #endif
