@@ -16,6 +16,13 @@ struct superblock {
 };
 
 #define NDIRECT     12  //一个文件数据最多占用的磁盘块
+#define NINDIRECT   (BSIZE / sizeof(uint))
+
+#define MAXFILE     (NDIRECT + NINDIRECT)   //一个文件最多占用的磁盘块数
+
+#define T_DIR   1   //目录文件
+#define T_FILE  2   //普通磁盘文件
+#define T_DEV   3   //设备文件
 
 //磁盘上的inode结构体
 struct  dinode {

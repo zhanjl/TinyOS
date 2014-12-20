@@ -29,7 +29,7 @@ struct inode {
     short   minor;
     short   nlink;
     uint    size;
-    uint    addrs[NDIRECT+1];   //该文件的内容所在的块号
+    uint    addrs[NDIRECT+1];   //该文件的内容所在的块号，最后一块表示两级块
 };
 
 #define I_BUSY  0x1
