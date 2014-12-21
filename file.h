@@ -20,7 +20,7 @@ struct file {
 
 struct inode {
     uint    dev;    //设备号
-    uint    num;    //文件的inode号
+    uint    inum;    //文件的inode号
     int     ref;    //引用计数
     int     flag;   //标识
     //下面是磁盘上的inode拷贝
@@ -41,4 +41,11 @@ struct devsw {
 };
 
 #define CONSOLE 1   //显示器的设备号是1
+struct file*    filealloc(void);
+void            fileclose(struct file*);
+struct file*    filedup(struct file*);
+void            fileinit(void);
+int             fileread(struct file*, char*, int n);
+//int             filestat(struct file*, struct stat*);
+int             filewrite(struct file*, char*, int n);
 #endif

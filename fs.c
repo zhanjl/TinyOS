@@ -4,13 +4,15 @@
 #include "buf.h"
 #include "monitor.h"
 #include "param.h"
+#include "log.h"
+extern struct devsw devsw[NDEV];   //设备驱动程序数组
 //读取超级块结构
 void readsb(int dev, struct superblock *sb)
 {
     struct buf *b;
 
     b = bread(dev, 1);
-    memcpy(sb, b->buf, sizeof(struct superblock));
+    memcpy(sb, b->data, sizeof(struct superblock));
     brelse(b);    
 }
 
@@ -48,7 +50,7 @@ static uint balloc(uint dev)
                 bp->data[bi/8] |= m;
                 log_write(bp);
                 brelse(bp);
-                bzero(b+bi);  
+                bzero(dev, b+bi);  
                 return b + bi;
             }
         }
@@ -65,7 +67,7 @@ static void bfree(int dev, uint b)
     int bi, m;
     
     readsb(dev, &sb);
-    bp = bread(dev, BBLOCK(b, sb.inode));
+    bp = bread(dev, BBLOCK(b, sb.ninodes));
     bi = b % BPB;
     m = 1 << (bi % 8);
     
@@ -100,7 +102,7 @@ struct inode* ialloc(uint dev, short type)
         {
             memset(dip, 0, sizeof(struct dinode));
             dip->type = type;
-            log_write(bp)
+            log_write(bp);
             brelse(bp);
 
             return iget(dev, inum);
@@ -201,6 +203,7 @@ void iunlock(struct inode *ip)
 }
 
 
+static void itrunc(struct inode *ip);
 //
 void iput(struct inode *ip)
 {
@@ -292,7 +295,7 @@ static uint bmap(struct inode *ip, uint bn)
 int readi(struct inode *ip, char *dst, uint off, uint n)
 {
     //如果此i节点是设备文件
-    if (ip->type = T_DEV)
+    if (ip->type == T_DEV)
     {
         if (ip->major < 0 || ip->major >= NDEV || !devsw[ip->major].read)
             return -1;
@@ -306,7 +309,7 @@ int readi(struct inode *ip, char *dst, uint off, uint n)
         n = ip->size - off;
 
     uint tot, m;
-    
+    struct buf *bp;    
     for (tot = 0; tot < n; tot += m, off += m, dst += m)
     {
         bp = bread(ip->dev, bmap(ip, off/BSIZE));
@@ -321,7 +324,7 @@ int readi(struct inode *ip, char *dst, uint off, uint n)
 int writei(struct inode *ip, char *src, uint off, uint n)
 {
     //如果此i节点是设备文件
-    if (ip->type = T_DEV)
+    if (ip->type == T_DEV)
     {
         if (ip->major < 0 || ip->major >= NDEV || !devsw[ip->major].read)
             return -1;
@@ -460,7 +463,7 @@ namex(char *path, int nameiparent, char *name)
     if (*path == '/')
         ip = iget(ROOTDEV, ROOTINO);
     else 
-        ip = idup(proc->cwd);   //当前进程目录    
+        //ip = idup(proc->cwd);   //当前进程目录    
 
     while ((path = skipelem(path, name)) != 0)
     {

@@ -1,7 +1,6 @@
 #ifndef FS_H
 #define FS_H
 #include "types.h"
-
 #define ROOTINO     1   //root的i节点号
 #define BSIZE       512 //磁盘块大小
 
@@ -53,4 +52,22 @@ struct dirent {
     ushort  inum;           //该文件的inode号
     char    name[DIRSIZ];   //该文件使用的磁盘块
 };
+struct inode;
+void readsb(int dev, struct superblock *sb);
+int dirlink(struct inode*, char*, uint);
+struct inode*   dirlookup(struct inode*, char*, uint*);
+struct inode*   ialloc(uint, short);
+struct inode*   idup(struct inode*);
+void            iinit(void);
+void            ilock(struct inode*);
+void            iput(struct inode*);
+void            iunlock(struct inode*);
+void            iunlockput(struct inode*);
+void            iupdate(struct inode*);
+int             namecmp(const char*, const char*);
+struct inode*   namei(char*);
+struct inode*   nameiparent(char*, char*);
+int             readi(struct inode*, char*, uint, uint);
+//void            stati(struct inode*, struct stat*);
+int             writei(struct inode*, char*, uint, uint);
 #endif

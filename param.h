@@ -9,4 +9,7 @@
 #define NBUF        30
 
 #define ROOTDEV     1   //文件系统的设备号
+
+#define MAXOPBLOCKS 10  
+#define LOGSIZE     (MAXOPBLOCKS*3)
 #endif

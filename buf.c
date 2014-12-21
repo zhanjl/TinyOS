@@ -26,7 +26,7 @@ void binit(void)
 
 void brelse(struct buf* cur)
 {
-    if (b->flags & BUF_BUSY)
+    if (cur->flags & BUF_BUSY)
         PANIC("brelse");
     cur->prev->next = cur->next;
     cur->next->prev = cur->prev;
