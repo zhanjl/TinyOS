@@ -9,6 +9,8 @@ OBJS = kalloc.o \
 	   vectors.o	\
 	   buf.o	\
 	   ide.o	\
+	   log.o	\
+	   fs.o		\
 	   main.o
 CC = gcc
 AS = gas
