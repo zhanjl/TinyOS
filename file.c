@@ -1,6 +1,8 @@
 #include "file.h"
 #include "param.h"
-
+#include "fs.h"
+#include "monitor.h"
+#include "log.h"
 struct devsw devsw[NDEV];   //设备驱动程序数组
 
 //文件描述符表,每个进程最多只能打开NFILE个文件
@@ -49,8 +51,9 @@ void fileclose(struct file *f)
     else if (f->type == FD_INODE)
     {
         f->type = FD_NONE;
-
-
+        begin_op();
+        iput(f->ip);
+        end_op();
     }
 }
 
@@ -59,6 +62,7 @@ void fileclose(struct file *f)
 //从文件中读取数据
 int fileread(struct file *f, char *addr, int n)
 {
+    int r;
     if (f->readable == 0)
         return -1;
     if (f->type == FD_PIPE)
@@ -67,7 +71,9 @@ int fileread(struct file *f, char *addr, int n)
     }
     if (f->type == FD_INODE)
     {
-
+        if ((r = readi(f->ip, addr, f->off, n)) > 0)
+            f->off += r;
+        return r;
     }
 }
 
@@ -82,6 +88,27 @@ int filewrite(struct file *f, char *addr, int n)
     }
     if (f->type == FD_INODE)
     {
+        int max = ((LOGSIZE - 1 - 1 - 2) / 2) * 512;
+        int i = 0;
+        int n1, r;
+        while (i < n)
+        {
+            n1 = n - i;
+            if (n1 > max)
+                n1 = max;
+            
+            begin_op();
+            if ((r = writei(f->ip, addr+i, f->off, n1)) > 0)
+                f->off += r;
+            end_op();
 
+            if (r < 0)
+                break;
+            if (r != n1)
+                PANIC("short filewrite");
+            i += r;
+        }
+        return i == n ? n : -1;
     }
+    PANIC("filewrite");
 }
