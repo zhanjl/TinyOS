@@ -11,6 +11,7 @@ OBJS = kalloc.o \
 	   ide.o	\
 	   log.o	\
 	   fs.o		\
+	   timer.o	\
 	   main.o
 CC = gcc
 AS = gas

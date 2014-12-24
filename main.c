@@ -7,6 +7,7 @@
 #include "traps.h"
 #include "ide.h"
 #include "buf.h"
+#include "timer.h"
 extern char end[];
 //定义供内核人口(entry.s)使用的页表
 __attribute__((__aligned__(PGSIZE)))
@@ -33,5 +34,6 @@ int main()
     tvinit();       //设置IDT表 具体的中断处理程序还没加上
     ideinit();      //初始化磁盘IO
     binit();        //初始化磁盘缓冲区
+    timerinit();    //打开始终中断
     return 0;
 }
