@@ -6,7 +6,7 @@
 #include "x86.h"
 #include "asm.h"
 #include "mem.h"
-
+#include "monitor.h"
 extern char data[];     //内核数据段起始地址
 pde_t   *kpgdir;        //内核页目录表起始地址
 
@@ -85,8 +85,7 @@ static struct kmap {
 };
 
 //为内核分配一张页表
-pde_t*
-setupkvm(void)
+pde_t* setupkvm(void)
 {
     pde_t *pgdir;
     pgdir = (uint)kalloc();
@@ -114,4 +113,16 @@ void kvmalloc(void)
 {
     kpgdir = setupkvm();
     switchkvm();
+}
+//
+void inituvm(pde_t *pgdir, char *init, uint sz)
+{
+    char    *mem;
+
+    if (sz > PGSIZE)
+        PANIC("bigger than a page");
+    mem = kalloc();
+    memset(mem, 0, PGSIZE);
+    mappages(pgdir, 0, PGSIZE, V2P(mem), PTE_W | PTE_U);
+    memcpy(mem, init, sz);
 }

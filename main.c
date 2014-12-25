@@ -8,6 +8,7 @@
 #include "ide.h"
 #include "buf.h"
 #include "timer.h"
+#include "proc.h"
 extern char end[];
 //定义供内核人口(entry.s)使用的页表
 __attribute__((__aligned__(PGSIZE)))
@@ -34,6 +35,7 @@ int main()
     tvinit();       //设置IDT表 具体的中断处理程序还没加上
     ideinit();      //初始化磁盘IO
     binit();        //初始化磁盘缓冲区
-    timerinit();    //打开始终中断
+    timerinit();    //打开时钟中断
+    userinit();     //设置第一个ie用户进程
     return 0;
 }

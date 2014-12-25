@@ -2,8 +2,10 @@
 #include "mmu.h"
 #include "x86.h"
 #include "ide.h"
+#include "types.h"
 struct gatedesc idt[256];
 extern uint vectors[];
+uint ticks = 0;
 //设置IDT表
 void tvinit(void)
 {
@@ -21,6 +23,10 @@ void trap(struct trapframe *tf)
     switch(intrnum) {
         case T_IRQ0 + IRQ_IDE:
             ideintr();
+            break;
+        case T_IRQ0 + IRQ_TIMER:    //时钟中断
+            ticks++;
+            //
             break;
     }
 }
