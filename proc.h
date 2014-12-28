@@ -44,4 +44,9 @@ void sched(void);   //切换到选择的进程
 void yield(void);   //把当前进程设置为RUNNABLE，并切换到另一个进程
 void sleep(void *chan); //把当前进程设置为SLEEPING状态并切换到另一个进程
 void wakeup(void *chan);//把所有sleep在chan上的进程状态设置为RUNNABLE。
+
+void exit(void);
+int fork(void);
+int kill(int);
+int wait(void);
 #endif

@@ -160,3 +160,130 @@ void wakeup(void *chan)
             proc[i].state = RUNNABLE;
     }
 }
+
+//fork函数，fork系统调用会执行此函数
+int fork(void)
+{
+    int i, pid;
+    struct proc *np;
+
+    if ((np = allocproc()) == 0)
+        return -1;
+
+    if ((np->pgdir = copyuvm(curproc->pgdir, curproc->sz)) == 0)
+    {
+        kfree(np->kstack);
+        np->kstack = 0;
+        np->state = UNUSED;
+        return -1;
+    }
+    np->sz = curproc->sz;
+    np->parent = curproc;
+    *np->tf = *curproc->tf;
+
+    np->tf->eax = 0;
+
+    for (i = 0; i < NFILE; i++)
+    {
+        if (curproc->ofile[i])
+            np->ofile[i] = filedup(curproc->ofile[i]);
+    }
+    np->cwd = idup(curproc->cwd);
+
+    pid = np->pid;
+
+    np->state = RUNNABLE;
+    return pid;
+}
+
+//exit系统调用会调用此函数
+void exit(void)
+{
+    struct proc *p;
+    int fd, i;
+
+    if (curproc == initproc)
+        PANIC("init exiting");
+
+    for (fd = 0; fd < NFILE; fd++)
+    {
+        if (curproc->ofile[fd])
+        {
+            fileclose(curproc->ofile[fd]);
+            curproc->ofile[fd] = 0;
+        }
+    }
+
+    begin_op();
+    iput(curproc->cwd);
+    end_op();
+    curproc->cwd = 0;
+
+    wakeup(curproc->parent);
+
+    for (i = 0; i < NPROC; i++)
+    {
+        if (proc[i].parent = curproc)
+        {
+            proc[i].parent = initproc;
+            if (proc[i].state == ZOMBIE)
+                wakeup(initproc);
+        }
+    }
+
+    curproc->state = ZOMBIE;
+    sched();
+    PANIC("zombie exit");
+}
+
+int wait(void)
+{
+    struct proc *p;
+    int havekids, pid;
+    int i;
+    for ( ; ; ) 
+    {
+        havekids = 0;
+        
+        for (i = 0; i < NPROC; i++)
+        {
+            if (proc[i].parent != curproc)
+                continue;
+            havekids = 1;
+            if (proc[i].state == ZOMBIE)
+            {
+                pid = proc[i].pid;
+                kfree(proc[i].kstack);
+                proc[i].kstack = 0;
+                freevm(proc[i].pgdir);
+                proc[i].state = UNUSED;
+                proc[i].pid = 0;
+                proc[i].parent = 0;
+                proc[i].killed = 0;
+                return pid;
+            }
+        }
+        if (!havekids || curproc->killed)
+            return -1;
+        sleep(curproc);
+    }
+}
+
+int kill(int pid)
+{
+    struct proc *p;
+
+    for (p = proc, p < &proc[NPROC]; p++)
+    {
+        if (p->pid == pid)
+        {
+            p->killed = 1;
+
+            if (p->state == SLEEPING)
+                p->state == RUNNABLE;
+            return 0;
+        }
+    }
+
+    return -1;
+}
