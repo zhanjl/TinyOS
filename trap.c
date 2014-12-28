@@ -3,8 +3,10 @@
 #include "x86.h"
 #include "ide.h"
 #include "types.h"
+#include "proc.h"
 struct gatedesc idt[256];
 extern uint vectors[];
+extern struct proc *curproc;    //当前进程
 uint ticks = 0;
 //设置IDT表
 void tvinit(void)
@@ -19,6 +21,12 @@ void trap(struct trapframe *tf)
 {
     int intrnum;    //中断号
     intrnum = tf->trapno;
+    if (intrnum == T_SYSCALL)   //如果是系统调用
+    {
+
+        syscall();
+        return;
+    }
     //根据intrnum的值分别进行处理
     switch(intrnum) {
         case T_IRQ0 + IRQ_IDE:
@@ -26,9 +34,12 @@ void trap(struct trapframe *tf)
             break;
         case T_IRQ0 + IRQ_TIMER:    //时钟中断
             ticks++;
-            //
+            wakeup(&ticks);
             break;
     }
+
+    if (curproc && curproc->state == RUNNING && tf->trapno == T_IRQ0+IRQ_TIMER)
+        yield();
 }
 
 //加载idt表

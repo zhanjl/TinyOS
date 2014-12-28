@@ -19,6 +19,8 @@ pde_t   entrypgdir[NPDENTRIES] = {
     [KERNBASE>>PDXSHIFT] = (0) | PTE_P | PTE_W | PTE_PS,
 };
 
+static void mpmain(void) __attribute__((noreturn));
+
 int main()
 {
     //供内核使用的堆区只有end - 4MB区间 
@@ -36,6 +38,12 @@ int main()
     ideinit();      //初始化磁盘IO
     binit();        //初始化磁盘缓冲区
     timerinit();    //打开时钟中断
-    userinit();     //设置第一个ie用户进程
-    return 0;
+    userinit();     //设置第一个用户进程
+    mpmain();       //开始运行进程
+}
+
+static void mpmain(void)
+{
+    idtinit();          //加载idt寄存器
+    scheduler();        //开始运行进程
 }

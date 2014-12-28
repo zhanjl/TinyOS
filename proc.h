@@ -30,6 +30,7 @@ struct proc {
     int killed;             //如果非0,表示本进程被killed
     struct file *ofile[NFILE];//打开的文件
     struct inode *cwd;      //当前目录
+    char    *chan;          //sleep链
 };
 
 
@@ -37,4 +38,10 @@ struct proc {
 void pinit(void);   //进程初始化函数
 
 void userinit(void);//设置第一个用户进程的进程结构体
+void scheduler(void);   //调度器，选择要切换的进程
+
+void sched(void);   //切换到选择的进程
+void yield(void);   //把当前进程设置为RUNNABLE，并切换到另一个进程
+void sleep(void *chan); //把当前进程设置为SLEEPING状态并切换到另一个进程
+void wakeup(void *chan);//把所有sleep在chan上的进程状态设置为RUNNABLE。
 #endif

@@ -87,4 +87,16 @@ lidt(struct gatedesc *p, int size)
 
   asm volatile("lidt (%0)" : : "r" (pd));
 }
+
+static inline void
+sti(void)
+{
+    asm volatile("sti");
+}
+
+static inline void
+ltr(ushort sel)
+{   
+    asm volatile("ltr %0" : : "r"(sel));
+}
 #endif

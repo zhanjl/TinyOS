@@ -7,14 +7,14 @@
 #include "asm.h"
 #include "mem.h"
 #include "monitor.h"
+#include "proc.h"
 extern char data[];     //内核数据段起始地址
 pde_t   *kpgdir;        //内核页目录表起始地址
 
 struct segdesc gdt[NSEGS];
 
 //初始化GDT表
-void 
-seginit(void)
+void seginit(void)
 {
     gdt[SEG_KCODE] = SEG(STA_X | STA_R, 0, 0xffffffff, 0);
     gdt[SEG_KDATA] = SEG(STA_W, 0, 0xffffffff, 0);
@@ -125,4 +125,17 @@ void inituvm(pde_t *pgdir, char *init, uint sz)
     memset(mem, 0, PGSIZE);
     mappages(pgdir, 0, PGSIZE, V2P(mem), PTE_W | PTE_U);
     memcpy(mem, init, sz);
+}
+
+//切换到内核页表
+void switchkvm(void)
+{
+    lcr3(V2P(kpgdir));
+}
+
+//切换到进程p的页表
+void switchuvm(struct proc *p)
+{
+    ltr(SEG_TSS << 3);
+    lcr3(V2P(p->pgdir));
 }

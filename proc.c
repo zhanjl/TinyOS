@@ -8,12 +8,16 @@
 #include "mem.h"
 #include "vm.h"
 #include "monitor.h"
+#include "log.h"
 
+struct context context;
 void forkret(void);         //context中eip的值，用于返回用户态
 extern void trapret(void);  //forkret中会执行这个程序，共同完成返回用户态的工作
+extern void swtch(struct context **old, struct context *new);//切换context的内容,swtch.S中定义
 struct proc proc[NPROC];    //系统进程结构体表
 int nextpid = 1;        //下一个可用的进程号
 struct proc *initproc;  //第一个进程
+struct proc *curproc;   //当前进程的进程结构体
 //初始化进程
 void pinit(void)
 {
@@ -92,4 +96,67 @@ void userinit(void)
 
     p->cwd = namei("/");
     p->state = RUNNABLE;
+}
+
+//调度器
+void scheduler(void)
+{
+    struct proc *oldproc;
+    int i;
+    for ( ; ; )
+    {
+        sti();
+        for (i = 0; i < NPROC; i++)
+        {
+            if (proc[i].state = RUNNABLE)
+                break;
+        }
+        //总有一个进程状态是RUNNABLE，不用担心找不到这样的进程
+        oldproc = curproc;
+        curproc = &proc[i];
+        switchuvm();
+        curproc->state = RUNNING;
+        swtch(&context, curproc->context);
+        switchkvm();
+    }
+}
+
+void sched(void)
+{
+    swtch(&curproc->context, context);
+}
+
+void yield(void)
+{
+    curproc->state == RUNNABLE;
+    sched();
+}
+
+void forkret(void)
+{
+    static int first = 1;
+    if (first)
+    {
+        first = 0;
+        initlog();
+    }
+}
+
+void sleep(void *chan)
+{
+    curproc->chan = chan;
+    proc->state = SLEEPING;
+    sched();
+
+    curproc->chan = 0;
+}
+
+void wakeup(void *chan)
+{
+    int i;
+    for (i = 0; i < NPROC; i++)
+    {
+        if (proc[i].state == SLEEPING && proc[i].chan == chan)
+            proc[i].state = RUNNABLE;
+    }
 }
