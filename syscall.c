@@ -60,7 +60,7 @@ int argstr(int n, char **pp)
     return fetchstr(addr, pp);
 }
 
-//对应的系统调用函数
+//对应的系统调用函数，在sysproc.c和sysfile.c文件中定义
 extern int sys_chdir(void);
 extern int sys_close(void);
 extern int sys_dup(void);
@@ -74,7 +74,7 @@ extern int sys_link(void);
 extern int sys_mkdir(void);
 extern int sys_mknod(void);
 extern int sys_open(void);
-extern int sys_pipe(void);
+//extern int sys_pipe(void);
 extern int sys_read(void);
 extern int sys_sbrk(void);
 extern int sys_sleep(void);
@@ -84,11 +84,12 @@ extern int sys_write(void);
 extern int sys_uptime(void);
 
 //系统调用函数数组，存储每个系统调用函数的地址
+//目前不支持管道，有待实现
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
 [SYS_exit]    sys_exit,
 [SYS_wait]    sys_wait,
-[SYS_pipe]    sys_pipe,
+//[SYS_pipe]    sys_pipe,
 [SYS_read]    sys_read,
 [SYS_kill]    sys_kill,
 [SYS_exec]    sys_exec,

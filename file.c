@@ -3,6 +3,7 @@
 #include "fs.h"
 #include "monitor.h"
 #include "log.h"
+#include "stat.h"
 struct devsw devsw[NDEV];   //设备驱动程序数组
 
 //文件描述符表,每个进程最多只能打开NFILE个文件
@@ -57,8 +58,6 @@ void fileclose(struct file *f)
     }
 }
 
-//获取一个文件的状态
-
 //从文件中读取数据
 int fileread(struct file *f, char *addr, int n)
 {
@@ -111,4 +110,14 @@ int filewrite(struct file *f, char *addr, int n)
         return i == n ? n : -1;
     }
     PANIC("filewrite");
+}
+//读取文件状态
+int filestat(struct file *f, struct stat *st)
+{
+    if (f->type == FD_INODE)
+    {
+        stati(f->ip, st);
+        return 0;
+    }
+    return -1;
 }
