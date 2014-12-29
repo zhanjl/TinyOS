@@ -23,8 +23,12 @@ void trap(struct trapframe *tf)
     intrnum = tf->trapno;
     if (intrnum == T_SYSCALL)   //如果是系统调用
     {
-
+        if (curproc->killed)
+            exit();
+        curproc->tf = tf;
         syscall();
+        if (curproc->killed)
+            exit();
         return;
     }
     //根据intrnum的值分别进行处理

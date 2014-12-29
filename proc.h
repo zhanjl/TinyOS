@@ -49,4 +49,6 @@ void exit(void);
 int fork(void);
 int kill(int);
 int wait(void);
+//给当前进程分配n个字节的空间
+int growproc(int);
 #endif
