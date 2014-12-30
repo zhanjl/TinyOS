@@ -4,6 +4,7 @@
 #include "monitor.h"
 #include "log.h"
 #include "stat.h"
+#include "pipe.h"
 struct devsw devsw[NDEV];   //设备驱动程序数组
 
 //文件描述符表,每个进程最多只能打开NFILE个文件
@@ -46,8 +47,7 @@ void fileclose(struct file *f)
     if (f->type == FD_PIPE)
     {
         f->type = FD_NONE;
-
-
+        pipeclose(ff.pipe, ff.writeable);
     }
     else if (f->type == FD_INODE)
     {
@@ -66,7 +66,7 @@ int fileread(struct file *f, char *addr, int n)
         return -1;
     if (f->type == FD_PIPE)
     {
-
+        return piperead(f->pipe, addr, n);
     }
     if (f->type == FD_INODE)
     {
@@ -83,7 +83,7 @@ int filewrite(struct file *f, char *addr, int n)
         return -1;
     if (f->type == FD_PIPE)
     {
-
+        return pipewrite(f->pipe, addr, n);
     }
     if (f->type == FD_INODE)
     {

@@ -8,6 +8,7 @@
 #include "file.h"
 #include "fcntl.h"
 #include "monitor.h"
+#include "pipe.h"
 
 extern struct proc *curproc;
 //获取第n个参数作为文件描述符，并返回对应的file结构体
@@ -341,6 +342,7 @@ int sys_chdir(void)
     proc->cwd = ip;
     return 0;
 }
+
 int sys_exec(void)
 {
     char *path, *argv[MAXARG];
@@ -364,4 +366,29 @@ int sys_exec(void)
         return -1;
     }
     return exec(path, argv);
+}
+
+int sys_pipe(void)
+{
+    int *fd;
+    struct file *rf, *wf;
+    int fd0, fd1;
+
+    if (argptr(0, (void*)&fd, 2*sizeof(fd[0])) < 0)
+        return -1;
+    if (pipealloc(&rf, &wf) < 0)
+        return -1;
+    fd0 = -1;
+    if ((fd0 = fdalloc(rf)) < 0 || (fd1 = fdalloc(wf)) < 0)
+    {
+        if (fd0 >= 0)
+            curproc->ofile[fd0] = 0;
+        fileclose(rf);
+        fileclose(wf);
+        return -1;
+    }
+
+    fd[0] = fd0;
+    fd[1] = fd1;
+    return 0;
 }

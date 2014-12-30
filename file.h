@@ -35,6 +35,7 @@ struct inode {
 #define I_BUSY  0x1
 #define I_VALID 0x2
 
+//设备驱动程序
 struct devsw {
     int (*read)(struct inode*, char*, int);
     int (*write)(struct inode*, char*, int);
