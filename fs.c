@@ -5,6 +5,7 @@
 #include "monitor.h"
 #include "param.h"
 #include "log.h"
+#include "stat.h"
 extern struct devsw devsw[NDEV];   //设备驱动程序数组
 //读取超级块结构
 void readsb(int dev, struct superblock *sb)
@@ -508,4 +509,13 @@ struct inode* namei(char *path)
 struct inode* nameiparent(char *path, char *name)
 {
     return namex(path, 1, name);
+}
+
+void stati(struct inode *ip, struct stat *st)
+{
+    st->dev = ip->dev;
+    st->ino = ip->inum;
+    st->type = ip->type;
+    st->nlink = ip->nlink;
+    st->size = ip->size;
 }
