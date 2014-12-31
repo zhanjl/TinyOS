@@ -5,6 +5,7 @@
 #include "types.h"
 #include "proc.h"
 #include "monitor.h"
+#include "lapic.h"
 struct gatedesc idt[256];
 extern uint vectors[];
 extern struct proc *curproc;    //当前进程
@@ -36,10 +37,12 @@ void trap(struct trapframe *tf)
     switch(intrnum) {
         case T_IRQ0 + IRQ_IDE:
             ideintr();
+            lapiceoi();
             break;
         case T_IRQ0 + IRQ_TIMER:    //时钟中断
             ticks++;
             wakeup(&ticks);
+            lapiceoi();
             break;
         default:    //缺页中断，本内核没有实现缺页中断处理函数，也没有实现磁盘页交换区
             if (curproc == 0 || (tf->cs&3) == 0)    //在内核态
