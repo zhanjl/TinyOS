@@ -4,6 +4,7 @@
 #include "ide.h"
 #include "types.h"
 #include "proc.h"
+#include "monitor.h"
 struct gatedesc idt[256];
 extern uint vectors[];
 extern struct proc *curproc;    //当前进程
@@ -40,10 +41,24 @@ void trap(struct trapframe *tf)
             ticks++;
             wakeup(&ticks);
             break;
+        default:    //缺页中断，本内核没有实现缺页中断处理函数，也没有实现磁盘页交换区
+            if (curproc == 0 || (tf->cs&3) == 0)    //在内核态
+            {
+                printf("unexpected trap %d at %x\n", tr->trapno, rcr2());
+                PANIC("trap");
+            }
+            //用户态
+            printf("pid %d trap error at %x\n", curproc->pid, rcr2());
+            curproc->killed = 1;
     }
-
+    if (curproc && curproc->killed && (tf->cs&3) == DPL_USER)
+       exit();
+    //进程切换
     if (curproc && curproc->state == RUNNING && tf->trapno == T_IRQ0+IRQ_TIMER)
         yield();
+    //再次切换回此进程
+    if (curproc && curproc->killed && (tf->cs&3) == DPL_USER)
+       exit();
 }
 
 //加载idt表

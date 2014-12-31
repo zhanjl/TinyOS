@@ -99,4 +99,12 @@ ltr(ushort sel)
 {   
     asm volatile("ltr %0" : : "r"(sel));
 }
+
+static inline uint
+rcr2(void)
+{
+    uint    val;
+    asm volatile("movl %%cr2, %0" : "=r"(val));
+    return val;
+}
 #endif
