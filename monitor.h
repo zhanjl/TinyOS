@@ -11,4 +11,5 @@ void printf(const char* fmt, ...);
 void panic(const char*, const char*, unsigned int);
 
 void consoleinit(void);
+void consoleintr(int (*)(void));    //键盘中断要调用的函数
 #endif

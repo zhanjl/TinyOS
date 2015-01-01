@@ -214,15 +214,14 @@ void consoleintr(int (*getc)(void))
     while ((c = getc()) >= 0)
     {
         switch(c) {    
-        
+            //在此处还要加上特殊字符的处理，例如输入ctrl+P时发生什么
+            //在此先不做处理，以后可以加上
             default:
-            //在此处还要加上特殊字符的处理
             if (c != 0 && input.e-input.r < INPUT_BUF)
             {
                 c = (c == '\r') ? '\n' : c;
                 input.buf[input.e++%INPUT_BUF] = c;
                 monitor_putc(c);
-
             }
             break; 
         }
